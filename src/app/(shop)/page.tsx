@@ -18,7 +18,7 @@ import {
 import ProductCard from "@/components/ProductCard";
 import ProductModal from "@/components/ProductModal";
 import ContactSection from "@/components/ContactSection";
-import { Product } from "@/types/product";
+import { Product, getProductImages } from "@/types/product";
 import { SAMPLE_PRODUCTS } from "@/lib/sample-data";
 import { getProducts, isSupabaseConfigured } from "@/lib/supabase/client";
 
@@ -28,6 +28,7 @@ export default function HomePage() {
   const [activeModalProduct, setActiveModalProduct] = useState<Product | null>(
     null
   );
+  const [heroProduct, setHeroProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -45,6 +46,14 @@ export default function HomePage() {
     }
     loadData();
   }, []);
+
+  // Pick a random product image for the hero section on every visit
+  useEffect(() => {
+    if (products && products.length > 0) {
+      const randomIndex = Math.floor(Math.random() * products.length);
+      setHeroProduct(products[randomIndex]);
+    }
+  }, [products]);
 
   // Featured 4 products
   const featuredProducts = products.slice(0, 4);
@@ -127,33 +136,53 @@ export default function HomePage() {
             {/* Right Column: Hero Visual with Playful Elements */}
             <div className="lg:col-span-5 relative">
               <div className="relative mx-auto max-w-sm sm:max-w-md lg:max-w-none">
-                {/* Visual Card */}
-                <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white aspect-4/5">
-                  <Image
-                    src="https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=800&auto=format&fit=crop&q=80"
-                    alt="Lola Kids Uşaq Geyimləri"
-                    fill
-                    priority
-                    sizes="(max-width: 1024px) 100vw, 500px"
-                    className="object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent flex flex-col justify-end p-5 sm:p-7 text-white">
-                    <span className="inline-block px-2.5 py-1 rounded-lg bg-pink-500 text-white text-[11px] font-black uppercase tracking-wider w-fit">
-                      Lola Kids Baku
-                    </span>
-                    <h2 className="text-lg sm:text-xl font-black mt-2 leading-tight">
-                      Uşaqlar üçün ən zərif və rahat geyimlər
-                    </h2>
-                    <a
-                      href="https://maps.app.goo.gl/b84PAJuB4GAPBbSu8"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-slate-200 hover:text-white mt-1 underline-offset-2 hover:underline inline-flex items-center gap-1 transition-colors"
+                {/* Visual Card with Dynamic Random Product Image */}
+                {(() => {
+                  const heroImage = heroProduct
+                    ? getProductImages(heroProduct)[0] || heroProduct.image_url
+                    : "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=800&auto=format&fit=crop&q=80";
+
+                  return (
+                    <div
+                      className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white aspect-4/5 cursor-pointer group"
+                      onClick={() => heroProduct && setActiveModalProduct(heroProduct)}
+                      title={heroProduct ? `${heroProduct.title} - Ətraflı baxmaq üçün klikləyin` : undefined}
                     >
-                      📍 Bakı, Yasamal rayonu, Abbas Mirzə Şərifzadə küçəsi, 171C
-                    </a>
-                  </div>
-                </div>
+                      <Image
+                        src={heroImage}
+                        alt={heroProduct?.title || "Lola Kids Uşaq Geyimləri"}
+                        fill
+                        priority
+                        sizes="(max-width: 1024px) 100vw, 500px"
+                        className="object-cover group-hover:scale-105 transition-transform duration-700"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-transparent flex flex-col justify-end p-5 sm:p-7 text-white">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <span className="inline-block px-2.5 py-1 rounded-lg bg-pink-500 text-white text-[11px] font-black uppercase tracking-wider w-fit">
+                            Lola Kids Baku
+                          </span>
+                          {heroProduct && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-400 text-slate-950 text-[11px] font-black w-fit shadow-xs">
+                              ✨ {Number(heroProduct.price).toFixed(2)} AZN
+                            </span>
+                          )}
+                        </div>
+                        <h2 className="text-lg sm:text-xl font-black mt-1 leading-tight line-clamp-2">
+                          {heroProduct?.title || "Uşaqlar üçün ən zərif və rahat geyimlər"}
+                        </h2>
+                        <a
+                          href="https://maps.app.goo.gl/b84PAJuB4GAPBbSu8"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-xs text-slate-200 hover:text-white mt-1.5 underline-offset-2 hover:underline inline-flex items-center gap-1 transition-colors w-fit"
+                        >
+                          📍 Bakı, Yasamal rayonu, Abbas Mirzə Şərifzadə küçəsi, 171C
+                        </a>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Floating Mascot Badge */}
                 <div className="absolute -top-4 -left-4 bg-white p-2.5 sm:p-3 rounded-2xl shadow-xl border-2 border-rose-200 flex items-center gap-2.5 animate-float-slow">

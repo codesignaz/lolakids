@@ -2,7 +2,8 @@
 
 import React from "react";
 import Image from "next/image";
-import { Product } from "@/types/product";
+import { Product, getProductImages } from "@/types/product";
+import { Images } from "lucide-react";
 
 interface ProductCardProps {
   product: Product;
@@ -61,43 +62,58 @@ export default function ProductCard({ product, onQuickView }: ProductCardProps) 
     <div className="group bg-white rounded-3xl border border-pink-100/80 overflow-hidden shadow-xs hover:shadow-xl hover:border-pink-300 transition-all duration-300 flex flex-col justify-between">
       <div>
         {/* Product Image Box */}
-        <div
-          className="relative aspect-square w-full bg-slate-100 overflow-hidden cursor-pointer"
-          onClick={() => onQuickView && onQuickView(product)}
-        >
-          {product.image_url ? (
-            <Image
-              src={product.image_url}
-              alt={product.title}
-              fill
-              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover group-hover:scale-108 transition-transform duration-500 ease-out"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-slate-400 bg-slate-100 text-xs">
-              Şəkil yoxdur
-            </div>
-          )}
+        {(() => {
+          const productImages = getProductImages(product);
+          const primaryImage = productImages[0] || product.image_url;
 
-          {/* Badges Overlay */}
-          <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex flex-wrap gap-1">
-            <span
-              className={`text-[10px] sm:text-xs font-black px-2 sm:px-2.5 py-0.5 rounded-full border shadow-xs ${genderInfo.classes}`}
+          return (
+            <div
+              className="relative aspect-square w-full bg-slate-100 overflow-hidden cursor-pointer"
+              onClick={() => onQuickView && onQuickView(product)}
             >
-              {genderInfo.label}
-            </span>
-            <span className="text-[10px] sm:text-xs font-black px-2 sm:px-2.5 py-0.5 rounded-full border bg-amber-400 text-slate-900 border-amber-300 shadow-xs">
-              {product.age_category} Yaş
-            </span>
-          </div>
+              {primaryImage ? (
+                <Image
+                  src={primaryImage}
+                  alt={product.title}
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover group-hover:scale-108 transition-transform duration-500 ease-out"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-slate-400 bg-slate-100 text-xs">
+                  Şəkil yoxdur
+                </div>
+              )}
 
-          {/* Discount Percentage Badge */}
-          {hasDiscount && (
-            <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-black text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full shadow-md animate-pulse">
-              -{discountPercent}%
+              {/* Badges Overlay */}
+              <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 flex flex-wrap gap-1">
+                <span
+                  className={`text-[10px] sm:text-xs font-black px-2 sm:px-2.5 py-0.5 rounded-full border shadow-xs ${genderInfo.classes}`}
+                >
+                  {genderInfo.label}
+                </span>
+                <span className="text-[10px] sm:text-xs font-black px-2 sm:px-2.5 py-0.5 rounded-full border bg-amber-400 text-slate-900 border-amber-300 shadow-xs">
+                  {product.age_category} Yaş
+                </span>
+              </div>
+
+              {/* Multiple Images Badge */}
+              {productImages.length > 1 && (
+                <div className="absolute bottom-2.5 right-2.5 bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-sm">
+                  <Images className="w-3 h-3 text-rose-300" />
+                  <span>{productImages.length}</span>
+                </div>
+              )}
+
+              {/* Discount Percentage Badge */}
+              {hasDiscount && (
+                <div className="absolute top-2.5 right-2.5 sm:top-3 sm:right-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-black text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full shadow-md animate-pulse">
+                  -{discountPercent}%
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          );
+        })()}
 
         {/* Product Details */}
         <div className="p-3 sm:p-4">

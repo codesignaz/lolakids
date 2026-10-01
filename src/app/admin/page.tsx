@@ -6,8 +6,17 @@ import {
   getSupabase,
   isSupabaseConfigured,
   uploadProductImage,
+  formatProductFromDb,
 } from "@/lib/supabase/client";
-import { Product, ProductInput, Gender, AgeCategory } from "@/types/product";
+import {
+  Product,
+  ProductInput,
+  Gender,
+  AgeCategory,
+  AGE_CATEGORY_OPTIONS,
+  getProductImages,
+  getProductAgeCategories,
+} from "@/types/product";
 import {
   Lock,
   Mail,
@@ -24,6 +33,8 @@ import {
   ExternalLink,
   ShieldCheck,
   RefreshCw,
+  Star,
+  Image as ImageIcon,
 } from "lucide-react";
 
 export default function AdminPage() {
@@ -58,11 +69,19 @@ export default function AdminPage() {
   const [formDescription, setFormDescription] = useState("");
   const [formPrice, setFormPrice] = useState<string>("");
   const [formOriginalPrice, setFormOriginalPrice] = useState<string>("");
-  const [formAge, setFormAge] = useState<AgeCategory>("0-2");
+  const [formAges, setFormAges] = useState<string[]>(["0-2"]);
   const [formGender, setFormGender] = useState<Gender>("Unisex");
-  const [formImageUrl, setFormImageUrl] = useState("");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Multi-image state
+  const [imagesList, setImagesList] = useState<
+    Array<{
+      id: string;
+      url?: string;
+      file?: File;
+      preview: string;
+    }>
+  >([]);
+  const [customImageUrl, setCustomImageUrl] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
 
   // Delete confirmation
@@ -118,7 +137,7 @@ export default function AdminPage() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setProducts(data || []);
+      setProducts((data || []).map(formatProductFromDb));
     } catch (err: any) {
       console.error("Məhsulları yükləyərkən xəta baş verdi:", err);
       setStatusMessage({
@@ -178,11 +197,10 @@ export default function AdminPage() {
     setFormDescription("");
     setFormPrice("");
     setFormOriginalPrice("");
-    setFormAge("0-2");
+    setFormAges(["0-2"]);
     setFormGender("Unisex");
-    setFormImageUrl("");
-    setImageFile(null);
-    setImagePreview(null);
+    setImagesList([]);
+    setCustomImageUrl("");
     setFormError(null);
     setModalOpen(true);
   };
@@ -196,27 +214,106 @@ export default function AdminPage() {
     setFormOriginalPrice(
       product.original_price ? product.original_price.toString() : ""
     );
-    setFormAge(product.age_category);
+    const ages = getProductAgeCategories(product.age_category);
+    setFormAges(ages.length > 0 ? ages : ["0-2"]);
     setFormGender(product.gender);
-    setFormImageUrl(product.image_url);
-    setImageFile(null);
-    setImagePreview(product.image_url);
+
+    const imgs = getProductImages(product);
+    setImagesList(
+      imgs.map((url, idx) => ({
+        id: `existing-${idx}-${Date.now()}`,
+        url,
+        preview: url,
+      }))
+    );
+    setCustomImageUrl("");
     setFormError(null);
     setModalOpen(true);
   };
 
-  // Handle image file selection
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
+  // Handle multiple image files selection
+  const handleMultipleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    const newItems: Array<{
+      id: string;
+      url?: string;
+      file?: File;
+      preview: string;
+    }> = [];
+
+    for (const file of files) {
       if (file.size > 5 * 1024 * 1024) {
-        setFormError("Şəkil faylının həcmi 5MB-dan çox olmamalıdır.");
-        return;
+        setFormError(`"${file.name}" faylının həcmi 5MB-dan çoxdur.`);
+        continue;
       }
-      setImageFile(file);
-      setImagePreview(URL.createObjectURL(file));
+      newItems.push({
+        id: `file-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        file,
+        preview: URL.createObjectURL(file),
+      });
+    }
+
+    if (newItems.length > 0) {
+      setImagesList((prev) => [...prev, ...newItems]);
       setFormError(null);
     }
+    e.target.value = "";
+  };
+
+  // Handle adding image via URL
+  const handleAddImageUrl = () => {
+    const url = customImageUrl.trim();
+    if (!url) return;
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      setFormError(
+        "Düzgün şəkil linki daxil edin (http:// və ya https:// ilə başlamalıdır)."
+      );
+      return;
+    }
+    setImagesList((prev) => [
+      ...prev,
+      {
+        id: `url-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+        url,
+        preview: url,
+      },
+    ]);
+    setCustomImageUrl("");
+    setFormError(null);
+  };
+
+  // Set selected image as the primary (cover) image
+  const setAsPrimaryImage = (index: number) => {
+    if (index === 0) return;
+    setImagesList((prev) => {
+      const item = prev[index];
+      const remaining = prev.filter((_, i) => i !== index);
+      return [item, ...remaining];
+    });
+  };
+
+  // Remove image from list
+  const removeImage = (index: number) => {
+    setImagesList((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // Toggle age category selection
+  const toggleAgeCategory = (ageId: string) => {
+    setFormAges((prev) => {
+      if (prev.includes(ageId)) {
+        if (prev.length === 1) {
+          setFormError("Məhsul üçün ən azı 1 yaş kateqoriyası seçilməlidir.");
+          return prev;
+        }
+        setFormError(null);
+        return prev.filter((a) => a !== ageId);
+      } else {
+        setFormError(null);
+        return [...prev, ageId];
+      }
+    });
   };
 
   // Handle Save Product (Add or Edit)
@@ -241,32 +338,41 @@ export default function AdminPage() {
       return;
     }
 
-    if (!imageFile && !formImageUrl.trim()) {
-      setFormError("Məhsul üçün şəkil yüklənməlidir və ya link daxil edilməlidir.");
+    if (formAges.length === 0) {
+      setFormError("Ən azı 1 yaş kateqoriyası seçilməlidir.");
+      return;
+    }
+
+    if (imagesList.length === 0) {
+      setFormError("Məhsul üçün ən azı 1 şəkil əlavə edilməlidir.");
       return;
     }
 
     setFormSubmitting(true);
 
     try {
-      let finalImageUrl = formImageUrl;
+      setUploadingImage(true);
+      const finalImageUrls: string[] = [];
 
-      // If user selected a new file, upload to Supabase Storage
-      if (imageFile) {
-        setUploadingImage(true);
-        finalImageUrl = await uploadProductImage(imageFile);
-        setUploadingImage(false);
+      for (const item of imagesList) {
+        if (item.url) {
+          finalImageUrls.push(item.url);
+        } else if (item.file) {
+          const uploadedUrl = await uploadProductImage(item.file);
+          finalImageUrls.push(uploadedUrl);
+        }
       }
+      setUploadingImage(false);
 
       const client = getSupabase();
-      const productPayload: ProductInput = {
+      const productPayload: any = {
         title: formTitle.trim(),
         description: formDescription.trim(),
         price: priceNum,
         original_price: origPriceNum && !isNaN(origPriceNum) ? origPriceNum : null,
-        age_category: formAge,
+        age_category: formAges.join(", "),
         gender: formGender,
-        image_url: finalImageUrl,
+        image_url: finalImageUrls.join(","),
       };
 
       if (editingProduct) {
@@ -304,7 +410,8 @@ export default function AdminPage() {
     } catch (err: any) {
       console.error("Save product error:", err);
       setFormError(
-        err.message || "Məhsulu yadda saxlayarkən xəta baş verdi. Zəhmət olmasa yenidən cəhd edin."
+        err.message ||
+          "Məhsulu yadda saxlayarkən xəta baş verdi. Zəhmət olmasa yenidən cəhd edin."
       );
     } finally {
       setFormSubmitting(false);
@@ -711,6 +818,12 @@ export default function AdminPage() {
                               Yoxdur
                             </div>
                           )}
+                          {product.images && product.images.length > 1 && (
+                            <div className="absolute bottom-0 right-0 bg-slate-900/90 text-[9px] font-bold text-rose-300 px-1 rounded-tl-md flex items-center gap-0.5">
+                              <ImageIcon className="w-2.5 h-2.5" />
+                              <span>{product.images.length}</span>
+                            </div>
+                          )}
                         </div>
                       </td>
 
@@ -725,10 +838,17 @@ export default function AdminPage() {
                       </td>
 
                       {/* Age Category */}
-                      <td className="py-3 px-4 whitespace-nowrap">
-                        <span className="px-2.5 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-300 font-semibold text-xs">
-                          {product.age_category} Yaş
-                        </span>
+                      <td className="py-3 px-4">
+                        <div className="flex flex-wrap gap-1 max-w-[150px]">
+                          {getProductAgeCategories(product.age_category).map((age) => (
+                            <span
+                              key={age}
+                              className="px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-300 font-semibold text-[11px] whitespace-nowrap"
+                            >
+                              {age} Yaş
+                            </span>
+                          ))}
+                        </div>
                       </td>
 
                       {/* Gender */}
@@ -894,8 +1014,8 @@ export default function AdminPage() {
                 />
               </div>
 
-              {/* Price, Age, Gender Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+              {/* Price & Gender Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
                 {/* Original / Base Price */}
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
@@ -935,23 +1055,6 @@ export default function AdminPage() {
                   </span>
                 </div>
 
-                {/* Age Category */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
-                    Yaş Qrupu *
-                  </label>
-                  <select
-                    value={formAge}
-                    onChange={(e) => setFormAge(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-xs sm:text-sm text-white focus:outline-none focus:border-rose-500"
-                  >
-                    <option value="0-2">0 - 2 Yaş (Körpə)</option>
-                    <option value="3-5">3 - 5 Yaş</option>
-                    <option value="6-12">6 - 12 Yaş</option>
-                    <option value="13-18">13 - 18 Yaş (Yeniyetmə)</option>
-                  </select>
-                </div>
-
                 {/* Gender */}
                 <div>
                   <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-1.5">
@@ -969,19 +1072,61 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Product Image Section */}
-              <div className="pt-2">
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
-                  Məhsulun Şəkli *
-                </label>
+              {/* Age Categories (Multi-select) */}
+              <div className="pt-1">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                    Yaş Kateqoriyaları * (Bir neçəsini seçə bilərsiniz)
+                  </label>
+                  <span className="text-[11px] text-amber-400 font-semibold">
+                    {formAges.length} kateqoriya seçilib
+                  </span>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {AGE_CATEGORY_OPTIONS.map((opt) => {
+                    const isSelected = formAges.includes(opt.id);
+                    return (
+                      <button
+                        type="button"
+                        key={opt.id}
+                        onClick={() => toggleAgeCategory(opt.id)}
+                        className={`p-3 rounded-xl border text-xs font-bold transition-all text-left flex items-center justify-between gap-1.5 active:scale-95 ${
+                          isSelected
+                            ? "bg-amber-500/20 border-amber-400 text-amber-300 shadow-md shadow-amber-500/10"
+                            : "bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-300"
+                        }`}
+                      >
+                        <span className="truncate">{opt.label}</span>
+                        {isSelected ? (
+                          <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" />
+                        ) : (
+                          <div className="w-4 h-4 rounded-full border border-slate-700 shrink-0" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-                {/* Upload File Input */}
+              {/* Product Images Section (Multi-image) */}
+              <div className="pt-2">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">
+                    Məhsulun Şəkilləri * (Bir neçə şəkil əlavə edin)
+                  </label>
+                  <span className="text-[11px] text-rose-400 font-semibold">
+                    {imagesList.length} şəkil əlavə edilib
+                  </span>
+                </div>
+
+                {/* Upload File Input (supports multiple) */}
                 <div className="border-2 border-dashed border-slate-800 hover:border-rose-500/50 rounded-2xl p-4 text-center bg-slate-950/40 transition-colors">
                   <input
                     type="file"
                     id="product-image-upload"
                     accept="image/*"
-                    onChange={handleFileChange}
+                    multiple
+                    onChange={handleMultipleFilesChange}
                     className="hidden"
                   />
                   <label
@@ -992,54 +1137,102 @@ export default function AdminPage() {
                       <Upload className="w-5 h-5" />
                     </div>
                     <span className="text-xs font-bold text-slate-200">
-                      {imageFile
-                        ? imageFile.name
-                        : "Kompüterdən şəkil seçin və ya bura atın"}
+                      Kompüterdən bir və ya bir neçə şəkil seçin
                     </span>
                     <span className="text-[11px] text-slate-400">
-                      PNG, JPG, WEBP (Maksimum 5MB)
+                      PNG, JPG, WEBP (Hər biri maks. 5MB) • Birdən çox fayl seçmək mümkündür
                     </span>
                   </label>
                 </div>
 
-                {/* Image Preview */}
-                {imagePreview && (
-                  <div className="mt-3 flex items-center gap-3 p-2 bg-slate-950 rounded-xl border border-slate-800">
-                    <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-slate-800 shrink-0">
-                      <Image
-                        src={imagePreview}
-                        alt="Önizləmə"
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="text-xs text-slate-400 truncate flex-1">
-                      <span className="text-emerald-400 font-semibold block">
-                        ✓ Şəkil seçilib
-                      </span>
-                      <span className="truncate block">
-                        {imageFile ? imageFile.name : formImageUrl}
-                      </span>
+                {/* Direct Image URL input */}
+                <div className="mt-3 flex gap-2">
+                  <input
+                    type="url"
+                    value={customImageUrl}
+                    onChange={(e) => setCustomImageUrl(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddImageUrl();
+                      }
+                    }}
+                    placeholder="və ya şəkil linkini daxil edin: https://..."
+                    className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-rose-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddImageUrl}
+                    className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-colors shrink-0"
+                  >
+                    + Linki Əlavə Et
+                  </button>
+                </div>
+
+                {/* Images Preview Grid */}
+                {imagesList.length > 0 && (
+                  <div className="mt-4 space-y-2">
+                    <span className="text-[11px] text-slate-400 font-semibold block">
+                      Seçilmiş Şəkillər (İlk şəkil əsas üz qabığı kimi görünür):
+                    </span>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                      {imagesList.map((item, index) => {
+                        const isPrimary = index === 0;
+                        return (
+                          <div
+                            key={item.id}
+                            className={`relative group rounded-xl overflow-hidden bg-slate-950 border transition-all ${
+                              isPrimary
+                                ? "border-amber-400 ring-2 ring-amber-400/30 shadow-md"
+                                : "border-slate-800 hover:border-slate-700"
+                            }`}
+                          >
+                            <div className="relative aspect-square w-full">
+                              <Image
+                                src={item.preview}
+                                alt={`Şəkil ${index + 1}`}
+                                fill
+                                className="object-cover"
+                              />
+                              {/* Primary badge */}
+                              {isPrimary ? (
+                                <div className="absolute top-1.5 left-1.5 bg-amber-500 text-slate-950 text-[10px] font-black px-2 py-0.5 rounded-md flex items-center gap-1 shadow-md">
+                                  <Star className="w-3 h-3 fill-current" />
+                                  <span>Əsas Şəkil</span>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() => setAsPrimaryImage(index)}
+                                  className="absolute top-1.5 left-1.5 bg-slate-900/80 hover:bg-amber-500 hover:text-slate-950 text-slate-300 text-[10px] font-bold px-2 py-0.5 rounded-md transition-colors opacity-90 sm:opacity-0 sm:group-hover:opacity-100 flex items-center gap-1"
+                                  title="Əsas şəkil et"
+                                >
+                                  <Star className="w-3 h-3" />
+                                  <span>Əsas et</span>
+                                </button>
+                              )}
+
+                              {/* Remove button */}
+                              <button
+                                type="button"
+                                onClick={() => removeImage(index)}
+                                className="absolute top-1.5 right-1.5 w-6 h-6 rounded-md bg-rose-500 hover:bg-rose-600 text-white flex items-center justify-center transition-colors shadow-md"
+                                title="Şəkli sil"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+
+                              {/* Index tag */}
+                              <div className="absolute bottom-1 right-1 bg-black/60 backdrop-blur-xs text-white text-[9px] px-1.5 py-0.5 rounded font-mono">
+                                #{index + 1}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
-
-                {/* Direct Image URL option */}
-                <div className="mt-3">
-                  <span className="text-[11px] text-slate-400 block mb-1">
-                    və ya şəkil linkini birbaşa daxil edin:
-                  </span>
-                  <input
-                    type="url"
-                    value={formImageUrl}
-                    onChange={(e) => {
-                      setFormImageUrl(e.target.value);
-                      if (!imageFile) setImagePreview(e.target.value);
-                    }}
-                    placeholder="https://example.com/sekil.jpg"
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-rose-500"
-                  />
-                </div>
               </div>
 
               {/* Action Buttons */}

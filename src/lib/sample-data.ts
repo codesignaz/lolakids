@@ -8,8 +8,13 @@ export const SAMPLE_PRODUCTS: Product[] = [
     price: 24.90,
     original_price: 35.00,
     age_category: "0-2",
+    age_categories: ["0-2"],
     gender: "Unisex",
     image_url: "https://images.unsplash.com/photo-1522771930-78848d9293e8?w=800&auto=format&fit=crop&q=80",
+    images: [
+      "https://images.unsplash.com/photo-1522771930-78848d9293e8?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1519457431-44ccd64a579b?w=800&auto=format&fit=crop&q=80",
+    ],
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 5).toISOString(),
   },
   {
@@ -18,9 +23,14 @@ export const SAMPLE_PRODUCTS: Product[] = [
     description: "Yumşaq pambıq astarı olan, çiçək motivləri ilə bəzədilmiş qız uşağı üçün zərif yay donu. Bayram və gündəlik üçün idealdır.",
     price: 34.00,
     original_price: 48.00,
-    age_category: "3-5",
+    age_category: "0-2, 3-5",
+    age_categories: ["0-2", "3-5"],
     gender: "Girl",
     image_url: "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=800&auto=format&fit=crop&q=80",
+    images: [
+      "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=800&auto=format&fit=crop&q=80",
+    ],
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 4).toISOString(),
   },
   {
@@ -30,8 +40,13 @@ export const SAMPLE_PRODUCTS: Product[] = [
     price: 49.00,
     original_price: 65.00,
     age_category: "6-12",
+    age_categories: ["6-12"],
     gender: "Boy",
     image_url: "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=800&auto=format&fit=crop&q=80",
+    images: [
+      "https://images.unsplash.com/photo-1519238263530-99bdd11df2ea?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=800&auto=format&fit=crop&q=80",
+    ],
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 3).toISOString(),
   },
   {
@@ -40,9 +55,14 @@ export const SAMPLE_PRODUCTS: Product[] = [
     description: "Hipoalergenik yun qarışıqlı iplikdən toxunmuş isti jaket. Payız və qış fəsillərində körpənizi isti və rahat saxlayır.",
     price: 29.00,
     original_price: 39.00,
-    age_category: "0-2",
+    age_category: "0-2, 3-5",
+    age_categories: ["0-2", "3-5"],
     gender: "Unisex",
     image_url: "https://images.unsplash.com/photo-1519457431-44ccd64a579b?w=800&auto=format&fit=crop&q=80",
+    images: [
+      "https://images.unsplash.com/photo-1519457431-44ccd64a579b?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1522771930-78848d9293e8?w=800&auto=format&fit=crop&q=80",
+    ],
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 2).toISOString(),
   },
   {
@@ -51,9 +71,13 @@ export const SAMPLE_PRODUCTS: Product[] = [
     description: "İkiqat pambıq parçadan hazırlanmış dəbli idman dəsti. Uşaqlar üçün ən sevimli və rahat gündəlik seçim.",
     price: 39.00,
     original_price: 55.00,
-    age_category: "3-5",
+    age_category: "3-5, 6-12",
+    age_categories: ["3-5", "6-12"],
     gender: "Boy",
     image_url: "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=800&auto=format&fit=crop&q=80",
+    images: [
+      "https://images.unsplash.com/photo-1503919545889-aef636e10ad4?w=800&auto=format&fit=crop&q=80",
+    ],
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 24 * 1).toISOString(),
   },
   {
@@ -63,8 +87,13 @@ export const SAMPLE_PRODUCTS: Product[] = [
     price: 49.00,
     original_price: 70.00,
     age_category: "6-12",
+    age_categories: ["6-12"],
     gender: "Girl",
     image_url: "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=800&auto=format&fit=crop&q=80",
+    images: [
+      "https://images.unsplash.com/photo-1518831959646-742c3a14ebf7?w=800&auto=format&fit=crop&q=80",
+      "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=800&auto=format&fit=crop&q=80",
+    ],
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 12).toISOString(),
   },
   {
@@ -74,8 +103,12 @@ export const SAMPLE_PRODUCTS: Product[] = [
     price: 59.00,
     original_price: 85.00,
     age_category: "13-18",
+    age_categories: ["13-18"],
     gender: "Boy",
     image_url: "https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=800&auto=format&fit=crop&q=80",
+    images: [
+      "https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=800&auto=format&fit=crop&q=80",
+    ],
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
   },
   {
@@ -85,8 +118,12 @@ export const SAMPLE_PRODUCTS: Product[] = [
     price: 64.00,
     original_price: 89.00,
     age_category: "13-18",
+    age_categories: ["13-18"],
     gender: "Girl",
     image_url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&auto=format&fit=crop&q=80",
+    images: [
+      "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&auto=format&fit=crop&q=80",
+    ],
     created_at: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
   },
 ];

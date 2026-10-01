@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Product } from "@/types/product";
+import { Product, getProductAgeCategories } from "@/types/product";
 import { SAMPLE_PRODUCTS } from "@/lib/sample-data";
 import { getProducts, isSupabaseConfigured } from "@/lib/supabase/client";
 import ProductCard from "@/components/ProductCard";
@@ -68,9 +68,12 @@ function ProductsContent() {
           return false;
         }
 
-        // Age filter
-        if (selectedAge !== "All" && p.age_category !== selectedAge) {
-          return false;
+        // Age filter (supports multi-age products)
+        if (selectedAge !== "All") {
+          const productAges = getProductAgeCategories(p.age_category);
+          if (!productAges.includes(selectedAge)) {
+            return false;
+          }
         }
 
         // Search query filter

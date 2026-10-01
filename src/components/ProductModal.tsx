@@ -1,9 +1,17 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
-import { Product } from "@/types/product";
-import { X, Phone, CheckCircle2, Tag } from "lucide-react";
+import { Product, getProductImages, getProductAgeCategories } from "@/types/product";
+import {
+  X,
+  Phone,
+  CheckCircle2,
+  Tag,
+  ChevronLeft,
+  ChevronRight,
+  Images,
+} from "lucide-react";
 
 interface ProductModalProps {
   product: Product | null;
@@ -11,7 +19,18 @@ interface ProductModalProps {
 }
 
 export default function ProductModal({ product, onClose }: ProductModalProps) {
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  // Reset active image index whenever a different product is opened
+  useEffect(() => {
+    setActiveImageIndex(0);
+  }, [product?.id]);
+
   if (!product) return null;
+
+  const images = getProductImages(product);
+  const currentImage = images[activeImageIndex] || product.image_url;
+  const ageCategories = getProductAgeCategories(product.age_category);
 
   const getGenderBadge = (gender: string) => {
     switch (gender) {
@@ -62,6 +81,16 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
     `Salam, Lola Kids! Bu məhsul haqqında ətraflı məlumat almaq və ya sifariş etmək istəyirəm:\n\n*${product.title}*\n${priceText}\nYaş: ${product.age_category} yaş\nCins: ${genderInfo.label}`
   )}`;
 
+  const handlePrevImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : images.length - 1));
+  };
+
+  const handleNextImage = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setActiveImageIndex((prev) => (prev < images.length - 1 ? prev + 1 : 0));
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/70 backdrop-blur-xs animate-fadeIn"
@@ -80,38 +109,102 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
           <X className="w-5 h-5" />
         </button>
 
-        {/* Modal Image */}
-        <div className="relative md:w-1/2 aspect-square sm:aspect-4/3 md:aspect-auto min-h-[240px] sm:min-h-[300px] md:min-h-full bg-slate-100 shrink-0">
-          {product.image_url ? (
-            <Image
-              src={product.image_url}
-              alt={product.title}
-              fill
-              className="object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-slate-400">
-              Şəkil yoxdur
-            </div>
-          )}
+        {/* Modal Image Gallery */}
+        <div className="relative md:w-1/2 flex flex-col bg-slate-100 shrink-0">
+          {/* Main Active Image Container */}
+          <div className="relative aspect-square sm:aspect-4/3 md:aspect-auto min-h-[260px] sm:min-h-[300px] md:min-h-[360px] w-full flex-1 overflow-hidden">
+            {currentImage ? (
+              <Image
+                src={currentImage}
+                alt={product.title}
+                fill
+                priority
+                className="object-cover transition-opacity duration-300"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-slate-400">
+                Şəkil yoxdur
+              </div>
+            )}
 
-          {/* Badges on Image */}
-          <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
-            <span
-              className={`text-xs font-black px-3 py-1 rounded-full shadow-md ${genderInfo.classes}`}
-            >
-              {genderInfo.label}
-            </span>
-            <span className="text-xs font-black px-3 py-1 rounded-full bg-amber-400 text-slate-900 shadow-md">
-              {product.age_category} Yaş
-            </span>
+            {/* Badges on Image */}
+            <div className="absolute top-3 left-3 flex flex-wrap gap-1.5 max-w-[80%]">
+              <span
+                className={`text-xs font-black px-3 py-1 rounded-full shadow-md ${genderInfo.classes}`}
+              >
+                {genderInfo.label}
+              </span>
+              {ageCategories.map((age) => (
+                <span
+                  key={age}
+                  className="text-xs font-black px-2.5 py-1 rounded-full bg-amber-400 text-slate-900 shadow-md"
+                >
+                  {age} Yaş
+                </span>
+              ))}
+            </div>
+
+            {/* Discount Tag Badge on Image */}
+            {hasDiscount && (
+              <div className="absolute top-3 right-14 sm:right-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-black text-xs px-3 py-1 rounded-full shadow-md flex items-center gap-1">
+                <Tag className="w-3.5 h-3.5" />
+                <span>-{discountPercent}% Endirim</span>
+              </div>
+            )}
+
+            {/* Multi-Image Next / Prev Controls */}
+            {images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={handlePrevImage}
+                  className="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 backdrop-blur-md text-slate-800 hover:bg-white hover:text-rose-600 flex items-center justify-center shadow-md transition-all active:scale-95"
+                  aria-label="Əvvəlki şəkil"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextImage}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-white/80 backdrop-blur-md text-slate-800 hover:bg-white hover:text-rose-600 flex items-center justify-center shadow-md transition-all active:scale-95"
+                  aria-label="Növbəti şəkil"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+
+                {/* Image counter indicator */}
+                <div className="absolute bottom-2.5 right-2.5 bg-slate-900/80 backdrop-blur-xs text-white text-[11px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1 shadow-sm">
+                  <Images className="w-3 h-3 text-rose-300" />
+                  <span>
+                    {activeImageIndex + 1} / {images.length}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
 
-          {/* Discount Tag Badge on Image */}
-          {hasDiscount && (
-            <div className="absolute top-3 right-14 sm:right-3 bg-gradient-to-r from-red-500 to-rose-600 text-white font-black text-xs px-3 py-1 rounded-full shadow-md flex items-center gap-1">
-              <Tag className="w-3.5 h-3.5" />
-              <span>-{discountPercent}% Endirim</span>
+          {/* Multiple Image Thumbnails Strip */}
+          {images.length > 1 && (
+            <div className="p-2 bg-slate-200/80 border-t border-slate-200 overflow-x-auto flex items-center gap-1.5 no-scrollbar">
+              {images.map((img, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setActiveImageIndex(idx)}
+                  className={`relative w-12 h-12 rounded-lg overflow-hidden shrink-0 border-2 transition-all ${
+                    activeImageIndex === idx
+                      ? "border-rose-500 ring-2 ring-rose-300 scale-105"
+                      : "border-transparent opacity-70 hover:opacity-100"
+                  }`}
+                >
+                  <Image
+                    src={img}
+                    alt={`Kiçik şəkil ${idx + 1}`}
+                    fill
+                    className="object-cover"
+                  />
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -151,24 +244,41 @@ export default function ProductModal({ product, onClose }: ProductModalProps) {
                 <div className="flex items-baseline gap-2">
                   <span className="text-2xl sm:text-3xl font-black text-slate-900">
                     {Number(product.price).toFixed(2)}{" "}
-                    <span className="text-base font-bold text-rose-600">AZN</span>
-                  </span>
-                  <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                    Münasib qiymət
+                    <span className="text-base font-bold">AZN</span>
                   </span>
                 </div>
               )}
             </div>
 
-            <div className="mt-4 pt-3 border-t border-slate-100">
-              <h4 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1">
-                Təsvir & Xüsusiyyətlər
+            {/* Description */}
+            <div className="mt-4">
+              <h4 className="text-xs font-black uppercase tracking-wider text-slate-400 mb-1.5">
+                Məhsul Haqqında:
               </h4>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
                 {product.description ||
-                  "Yüksək keyfiyyətli parçadan tikilmiş, uşaqların gündəlik rahatlığı üçün hazırlanmış geyim."}
+                  "Lola Kids uşaq geyimləri ilə balacaların rahatlığı və zərifliyi hər zaman təmin olunur. 100% təbii pambıq, nəfəs alan parça və yüksək keyfiyyət."}
               </p>
             </div>
+
+            {/* Age groups applicable list */}
+            {ageCategories.length > 0 && (
+              <div className="mt-3.5">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                  Uyğun Yaş Qrupları:
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {ageCategories.map((age) => (
+                    <span
+                      key={age}
+                      className="px-2.5 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold"
+                    >
+                      👶 {age} Yaş
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="mt-3.5 space-y-1.5 text-xs text-slate-700 bg-slate-50 p-3 rounded-2xl border border-slate-200">
               <div className="flex items-center gap-2">

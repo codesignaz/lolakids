@@ -1,5 +1,10 @@
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
-import { Product, ProductInput } from "@/types/product";
+import {
+  Product,
+  ProductInput,
+  getProductImages,
+  getProductAgeCategories,
+} from "@/types/product";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
@@ -71,6 +76,41 @@ export async function uploadProductImage(file: File): Promise<string> {
 }
 
 /**
+ * Köməkçi: Supabase-dən gələn sətri Product obyektinə çevirir və şəkillər/yaşları normallaşdırır
+ */
+export function formatProductFromDb(row: any): Product {
+  const images = getProductImages(row);
+  const ageCategories = getProductAgeCategories(row.age_category);
+  return {
+    ...row,
+    image_url: images[0] || row.image_url || "",
+    images: images.length > 0 ? images : (row.image_url ? [row.image_url] : []),
+    age_categories: ageCategories,
+  };
+}
+
+/**
+ * Köməkçi: Supabase bazasına yazılarkən xətaların qarşısını almaq üçün təhlükəsiz payload hazırlayır
+ */
+export function preparePayloadForDb(product: Partial<ProductInput>): any {
+  const payload: any = { ...product };
+
+  // Şəkillər massivdirsə, bazada image_url sütununda vergüllə saxlanılır
+  if (Array.isArray(payload.images) && payload.images.length > 0) {
+    payload.image_url = payload.images.filter(Boolean).join(",");
+  }
+  delete payload.images;
+
+  // Çoxsaylı yaş kateqoriyaları varsa, age_category sütununda vergüllə saxlanılır
+  if (Array.isArray(payload.age_categories) && payload.age_categories.length > 0) {
+    payload.age_category = payload.age_categories.filter(Boolean).join(", ");
+  }
+  delete payload.age_categories;
+
+  return payload;
+}
+
+/**
  * Fetch all products from Supabase
  */
 export async function getProducts(): Promise<Product[]> {
@@ -89,7 +129,7 @@ export async function getProducts(): Promise<Product[]> {
     throw error;
   }
 
-  return (data || []) as Product[];
+  return ((data || []) as any[]).map(formatProductFromDb);
 }
 
 /**
@@ -103,9 +143,11 @@ export async function addProduct(product: ProductInput): Promise<Product> {
   }
 
   const client = getSupabase();
+  const dbPayload = preparePayloadForDb(product);
+
   const { data, error } = await client
     .from("products")
-    .insert([product])
+    .insert([dbPayload])
     .select()
     .single();
 
@@ -113,7 +155,7 @@ export async function addProduct(product: ProductInput): Promise<Product> {
     throw error;
   }
 
-  return data as Product;
+  return formatProductFromDb(data);
 }
 
 /**
@@ -130,9 +172,11 @@ export async function updateProduct(
   }
 
   const client = getSupabase();
+  const dbPayload = preparePayloadForDb(product);
+
   const { data, error } = await client
     .from("products")
-    .update({ ...product, updated_at: new Date().toISOString() })
+    .update({ ...dbPayload, updated_at: new Date().toISOString() })
     .eq("id", id)
     .select()
     .single();
@@ -141,7 +185,7 @@ export async function updateProduct(
     throw error;
   }
 
-  return data as Product;
+  return formatProductFromDb(data);
 }
 
 /**
