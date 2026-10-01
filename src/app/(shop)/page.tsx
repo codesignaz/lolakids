@@ -65,7 +65,7 @@ export default function HomePage() {
               {/* Joyful Pill */}
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white shadow-sm border border-rose-200 text-rose-600 text-xs font-black tracking-wide uppercase">
                 <span className="animate-spin text-amber-500">✨</span>
-                <span>Yeni Yaz-Qış Kolleksiyası 2026</span>
+                <span>Yeni Payız-Qış Kolleksiyası 2026</span>
                 <span className="text-amber-500">🧸</span>
               </div>
 
