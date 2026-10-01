@@ -65,7 +65,7 @@ export default function HomePage() {
               {/* Joyful Pill */}
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white shadow-sm border border-rose-200 text-rose-600 text-xs font-black tracking-wide uppercase">
                 <span className="animate-spin text-amber-500">✨</span>
-                <span>Yeni Yaz-Yay Kolleksiyası 2026</span>
+                <span>Yeni Yaz-Qış Kolleksiyası 2026</span>
                 <span className="text-amber-500">🧸</span>
               </div>
 
@@ -144,9 +144,14 @@ export default function HomePage() {
                     <h2 className="text-lg sm:text-xl font-black mt-2 leading-tight">
                       Uşaqlar üçün ən zərif və rahat geyimlər
                     </h2>
-                    <p className="text-xs text-slate-200 mt-1">
+                    <a
+                      href="https://maps.app.goo.gl/b84PAJuB4GAPBbSu8"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-slate-200 hover:text-white mt-1 underline-offset-2 hover:underline inline-flex items-center gap-1 transition-colors"
+                    >
                       📍 Bakı, Yasamal rayonu, Abbas Mirzə Şərifzadə küçəsi, 171C
-                    </p>
+                    </a>
                   </div>
                 </div>
 

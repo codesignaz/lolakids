@@ -72,7 +72,7 @@ export default function ContactSection() {
                     Bakı, Yasamal rayonu, Abbas Mirzə Şərifzadə küçəsi, 171C
                   </p>
                   <a
-                    href="https://maps.google.com/?q=Bak%C4%B1,+Yasamal+rayonu,+Abbas+Mirz%C9%99+%C5%9E%C9%99rifzad%C9%99+k%C3%BC%C3%A7%C9%99si,+171C"
+                    href="https://maps.app.goo.gl/b84PAJuB4GAPBbSu8"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs py-2.5 px-4 rounded-xl transition-all shadow-sm active:scale-95"
@@ -131,7 +131,7 @@ export default function ContactSection() {
             <div className="relative w-full h-full min-h-[340px] rounded-2xl overflow-hidden border border-slate-100">
               <iframe
                 title="Lola Kids Mağazası - Bakı, Yasamal rayonu, Abbas Mirzə Şərifzadə küçəsi, 171C"
-                src="https://maps.google.com/maps?q=Bak%C4%B1%2C+Yasamal+rayonu%2C+Abbas+Mirz%C9%99+%C5%9E%C9%99rifzad%C9%99+k%C3%BC%C3%A7%C9%99si+171C&t=&z=16&ie=UTF8&iwloc=&output=embed"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1519.1!2d49.8040573!3d40.3799457!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x40307d0060b1e521%3A0xf4238d8f5c8d9c79!2zVcWfYXEgbWFsbGFywLE!5e0!3m2!1saz!2saz!4v1710000000000!5m2!1saz!2saz"
                 width="100%"
                 height="100%"
                 style={{ border: 0, minHeight: "340px" }}
@@ -145,7 +145,7 @@ export default function ContactSection() {
                   📍 Yasamal r-nu, A.M. Şərifzadə küç., 171C
                 </span>
                 <a
-                  href="https://maps.google.com/?q=Bak%C4%B1,+Yasamal+rayonu,+Abbas+Mirz%C9%99+%C5%9E%C9%99rifzad%C9%99+k%C3%BC%C3%A7%C9%99si,+171C"
+                  href="https://maps.app.goo.gl/b84PAJuB4GAPBbSu8"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-black text-rose-600 hover:text-rose-700 hover:underline shrink-0"

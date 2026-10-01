@@ -122,7 +122,7 @@ export default function Footer() {
                     Bakı, Yasamal rayonu, Abbas Mirzə Şərifzadə küçəsi, 171C
                   </span>
                   <a
-                    href="https://maps.google.com/?q=Bak%C4%B1,+Yasamal+rayonu,+Abbas+Mirz%C9%99+%C5%9E%C9%99rifzad%C9%99+k%C3%BC%C3%A7%C9%99si,+171C"
+                    href="https://maps.app.goo.gl/b84PAJuB4GAPBbSu8"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-xs text-rose-400 hover:text-rose-300 underline font-bold"

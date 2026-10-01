@@ -106,7 +106,12 @@ export default function RootLayout({
       addressLocality: "Baku",
       addressCountry: "AZ",
     },
-    hasMap: "https://maps.app.goo.gl/tmrC1v8QnsVrzti46",
+    geo: {
+      "@type": "GeoCoordinates",
+      latitude: 40.3799457,
+      longitude: 49.8040573,
+    },
+    hasMap: "https://maps.app.goo.gl/b84PAJuB4GAPBbSu8",
     priceRange: "$$",
     openingHoursSpecification: [
       {
