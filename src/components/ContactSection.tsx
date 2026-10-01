@@ -96,7 +96,7 @@ export default function ContactSection() {
                     İş Qrafiki
                   </h3>
                   <p className="text-sm font-black text-slate-900">
-                    Hər gün: 10:00 - 21:00
+                    Hər gün: 08:30 - 20:00
                   </p>
                   <div className="mt-3.5 pt-3 border-t border-slate-100">
                     <a

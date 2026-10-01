@@ -143,7 +143,7 @@ export default function Footer() {
             <div className="space-y-2 text-xs sm:text-sm text-slate-300">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Hər gün: 10:00 - 21:00</span>
+                <span>Hər gün: 08:30 - 20:00</span>
               </div>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Bakı daxilində sürətli kuryer çatdırılması və mağazadan birbaşa təhvil alma.
